@@ -17,6 +17,10 @@ SoftwareSerial mySerial(7, 8); // RX, TX
 //     RXD          Pin 8
 int accValues[100];
 int count=0;
+int total=0;
+int c0=0;
+int c1=0;
+int c2=0;
 char buf[4];
 const char *msg;
 void displaySensorDetails(void)
@@ -62,8 +66,11 @@ void setup(void)
 void loop(void) 
 {
   /* Get a new sensor event */ 
- 
   count=0;
+         const char *msg1 = itoa (count, buf, 10);
+    driver.send((uint8_t *)msg1, strlen(msg1));
+    driver.waitPacketSent();
+
   /* Display the results (speed is measured in rad/s) */
   for (int i=0;i<80;i++){ 
   sensors_event_t event; 
@@ -93,17 +100,32 @@ void loop(void)
     driver.send((uint8_t *)msg, strlen(msg));
     driver.waitPacketSent();
     delay(200);
-     char c;
-  if (Serial.available()) {
-    c = Serial.read();
-    mySerial.print(c);
-  }
-  if (mySerial.available()) {
-    c = mySerial.read();
-    Serial.print(c);    
-  }
+    
+    mySerial.println("Was weight lifted over 99 punds? y/n");
+        delay(6000);
+    c0 = mySerial.read();
+    if (c0==121) {
+      mySerial.println("Enter weight lifted with: ");
+      delay(6000);
+      c0 = mySerial.read();
+      c1 = mySerial.read();
+      c2 = mySerial.read();
+      total=100*(c0-48)+10*(c1-48)+1*(c2-48);
+    }
+    if (c0==110) {
+      mySerial.print("Enter weight lifted with: ");
+      delay(6000);
+      c0 = mySerial.read();
+      c1 = mySerial.read();
+      total=10*(c0-48)+1*(c1-48);
+    }
+    mySerial.println(total);
+    total=total*count;
+    mySerial.print("You lifted a total of ");
+    mySerial.print(total);
+    mySerial.println(" pounds.");
+
   delay(2000);
 }
-
 
 
